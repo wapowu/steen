@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Steen Clone</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+ <div class="menu-bar window-frame">
+  <div class="window-header">
+    <span class="dot red"></span>
+    <span class="dot yellow"></span>
+    <span class="dot green"></span>
+    <strong><img src="steen-template.jpg" class="tiny-icon"> Steen Online Inc 1.1</strong>
+    <div class="menu-buttons">
+    
+    </div>
+  </div>
+  <div class="menu-body">
+    <div class="menu-message">This is steen.</div>
+  </div>
+</div>
+
+
+  <div id="admin-button" class="admin-login-button">Admin Login</div>
+  <div class="app-container">
+    <div class="draw-pad window-frame">
+      <div class="window-header">
+  <span class="dot red"></span>
+  <span class="dot yellow"></span>
+  <span class="dot green"></span>
+  <span class="title">Draw Pad</span>
+</div>
+
+      <div class="tools">
+        <div class="colors">
+          <button class="color-btn" data-color="#000000" style="background:#000000;"></button>
+          <button class="color-btn" data-color="#FF0000" style="background:#FF0000;"></button>
+          <button class="color-btn" data-color="#FFFFFF" style="background:#FFFFFF;"></button>
+          <button class="color-btn" data-color="#00FF00" style="background:#00FF00;"></button>
+          <button class="color-btn" data-color="#0000FF" style="background:#0000FF;"></button>
+          <button class="color-btn" data-color="#FFFF00" style="background:#FFFF00;"></button>
+          <button class="color-btn" data-color="#00FFFF" style="background:#00FFFF;"></button>
+          <button class="color-btn" data-color="#FF00FF" style="background:#FF00FF;"></button>
+          <button class="color-btn" data-color="#808080" style="background:#808080;"></button>
+          <button class="color-btn" data-color="#FFA500" style="background:#FFA500;"></button>
+        </div>
+        <label for="size">Brush Size:</label>
+        <input type="range" id="size" min="1" max="20" value="5" />
+        <button id="undo">Undo</button>
+        <button id="clear">Reset to Steen</button>
+        <button id="submit">Submit Drawing</button>
+      </div>
+      <canvas id="canvas" width="300" height="300"></canvas>
+    </div>
+
+  <div class="community-gallery window-frame">
+  <div class="window-header">
+    <span class="dot red"></span>
+    <span class="dot yellow"></span>
+    <span class="dot green"></span>
+    <strong>Community Gallery</strong>
+  </div>
+
+  <!-- ✅ SCROLLABLE CONTAINER -->
+  <div class="gallery-scroll-wrapper">
+    <div id="gallery-grid" class="gallery-grid"></div>
+  </div>
+</div>
+
+
+  <script src="script.js"></script>
+</body>
+</html>
