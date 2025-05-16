@@ -196,7 +196,7 @@ let isAdmin = false;
 
 document.getElementById('admin-button').addEventListener('click', () => {
   const pwd = prompt('Enter admin password:');
-  if (pwd === 'letmein') { // 🔐 Change this to whatever you want
+  if (pwd === 'wapowu69420') { // 🔐 Change this to whatever you want
     isAdmin = true;
     alert('Admin mode activated!');
 
