@@ -187,14 +187,20 @@ refreshGallery();
 submitButton.addEventListener('click', () => {
   const username = prompt('Enter your username:');
   if (!username) return alert('Submission cancelled. No username entered.');
+  
+  console.log('🟢 Submitting drawing for', username);
 
   canvas.toBlob(async (blob) => {
     const imageName = `${username}_${Date.now()}.png`;
     const storageRef = ref(storage, `drawings/${imageName}`);
+    console.log('📤 Uploading to:', storageRef);
 
     try {
       await uploadBytes(storageRef, blob);
+      console.log('✅ Upload complete!');
+
       const url = await getDownloadURL(storageRef);
+      console.log('🔗 Download URL:', url);
 
       await addDoc(collection(db, 'gallery'), {
         username: username,
@@ -202,11 +208,12 @@ submitButton.addEventListener('click', () => {
         timestamp: serverTimestamp(),
         score: 0
       });
+      console.log('🗂️ Firestore doc added!');
 
       alert('Drawing uploaded successfully!');
       refreshGallery(); // Refresh immediately
     } catch (error) {
-      console.error('Error uploading:', error);
+      console.error('❌ Upload Error:', error);
       alert('Error uploading drawing. Check console for details.');
     }
   }, 'image/png');
