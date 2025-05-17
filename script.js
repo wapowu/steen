@@ -1,3 +1,4 @@
+// Drawing App Logic
 let isDrawing = false;
 let x = 0;
 let y = 0;
@@ -17,7 +18,7 @@ const galleryGrid = document.getElementById('gallery-grid');
 const template = new Image();
 template.src = 'steen-template.jpg';
 
-// Load template
+// Load template and set up canvas
 template.onload = () => {
   canvas.width = template.width;
   canvas.height = template.height;
@@ -100,22 +101,8 @@ function saveStep() {
   drawingHistory.push(canvas.toDataURL());
 }
 
-function adjustVotes(el, delta) {
-  const scoreSpan = el.querySelector('.score');
-  let score = parseInt(scoreSpan.textContent) + delta;
-  scoreSpan.textContent = score;
-  el.dataset.score = score;
-  sortGallery();
-}
-
-function sortGallery() {
-  const items = Array.from(galleryGrid.children);
-  items.sort((a, b) => parseInt(b.dataset.score) - parseInt(a.dataset.score));
-  items.forEach(item => galleryGrid.appendChild(item));
-}
-
+// Admin Delete Logic
 let isAdmin = false;
-
 document.getElementById('admin-button').addEventListener('click', () => {
   const pwd = prompt('Enter admin password:');
   if (pwd === 'wapowu69420') {
@@ -129,42 +116,21 @@ document.getElementById('admin-button').addEventListener('click', () => {
 
 function addDeleteButton(container) {
   if (container.querySelector('.delete-btn')) return;
-
   const delBtn = document.createElement('button');
   delBtn.textContent = '🗑️';
   delBtn.className = 'delete-btn';
-  Object.assign(delBtn.style, {
-    marginTop: '5px',
-    background: '#c00',
-    color: 'white',
-    border: 'none',
-    padding: '2px 5px',
-    cursor: 'pointer',
-    fontSize: '12px'
-  });
-
-  delBtn.addEventListener('click', () => {
-    container.remove();
-  });
-
+  delBtn.style.cssText = 'margin-top:5px;background:#c00;color:white;border:none;padding:2px 5px;cursor:pointer;font-size:12px;';
+  delBtn.addEventListener('click', () => container.remove());
   container.appendChild(delBtn);
 }
 
 // Watermark
 const watermark = document.createElement('div');
 watermark.textContent = 'WoKT9g7Y9vERxdPg1AkeU9poRZxM713NGo4UoR2bonk';
-Object.assign(watermark.style, {
-  position: 'fixed',
-  bottom: '10px',
-  left: '50%',
-  transform: 'translateX(-50%)',
-  fontSize: '12px',
-  color: '#FF7518',
-  opacity: '0.6'
-});
+watermark.style.cssText = 'position:fixed;bottom:10px;left:50%;transform:translateX(-50%);font-size:12px;color:#FF7518;opacity:0.6;';
 document.body.appendChild(watermark);
 
-// Firestore Gallery Refresh
+// Gallery loader
 async function refreshGallery() {
   galleryGrid.innerHTML = '';
   try {
@@ -178,11 +144,10 @@ async function refreshGallery() {
       imgElement.alt = `Drawing by ${data.username}`;
       imgElement.style.width = '200px';
       imgElement.style.margin = '5px';
-
       galleryGrid.appendChild(imgElement);
     });
-  } catch (err) {
-    console.error('Gallery fetch failed:', err);
+  } catch (error) {
+    console.error('Failed to load gallery:', error);
   }
 }
 
@@ -193,6 +158,14 @@ submitButton.addEventListener('click', () => {
   if (!username) return alert('Submission cancelled. No username entered.');
 
   canvas.toBlob(async (blob) => {
+    // Optimistically display locally before upload
+    const localImg = document.createElement('img');
+    localImg.src = URL.createObjectURL(blob);
+    localImg.alt = `Pending upload by ${username}`;
+    localImg.style.width = '200px';
+    localImg.style.margin = '5px';
+    galleryGrid.insertBefore(localImg, galleryGrid.firstChild);
+
     const imageName = `${username}_${Date.now()}.png`;
     const storageRef = ref(storage, `drawings/${imageName}`);
 
@@ -205,11 +178,10 @@ submitButton.addEventListener('click', () => {
         timestamp: serverTimestamp(),
         score: 0
       });
-      alert('Drawing uploaded successfully!');
       refreshGallery();
     } catch (error) {
-      console.error('Upload failed:', error);
-      alert('Error uploading drawing. Check console.');
+      console.error('Upload Error:', error);
+      alert('Error uploading drawing. Check console for details.');
     }
   }, 'image/png');
 });
