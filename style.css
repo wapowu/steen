@@ -4,101 +4,6 @@ body {
   font-family: monospace;
   background: repeating-conic-gradient(#ccc 0% 25%, transparent 0% 50%) 0 0 / 20px 20px;
 }
-.menu-bar {
-  width: 100vw;               /* Ensures full viewport width */
-  max-width: none !important; /* Override any max-width limit */
-  margin: 0 auto;
-  border: 2px solid #333;
-  background: rgb(223, 191, 191);
-  font-family: 'Courier New', monospace;
-}
-
-
-
-.menu-bar .window-header {
-  display: flex;
-  align-items: center;
-  background: #333;
-  color: #fff;
-  padding: 4px 8px;
-  font-size: 12px;
-  justify-content: space-between;
-}
-
-.menu-bar .dot {
-  margin-right: 4px;
-}
-
-.menu-bar .menu-buttons {
-  margin-left: auto;
-}
-
-.menu-bar .menu-btn {
-  font-size: 10px;
-  background: #eee;
-  border: 1px solid #999;
-  margin-left: 4px;
-  padding: 2px 6px;
-  cursor: pointer;
-}
-
-.menu-bar .menu-body {
-  background: white;
-  padding: 10px;
-  border-top: 2px solid #999;
-}
-
-.menu-message {
-  text-align: center;
-  font-weight: bold;
-  font-family: monospace;
-  color: #421e1e;
-}
-
-.tiny-icon {
-  height: 12px;
-  vertical-align: text-bottom;
-  margin-right: 4px;
-}
-
-body {
-  padding-top: 40px; /* Add space for the menu */
-}
-
-.menu-dots {
-  display: flex;
-  gap: 4px;
-}
-
-.menu-dots .dot {
-  margin: 0;
-}
-
-.menu-title {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.menu-icon {
-  width: 16px;
-  height: 16px;
-}
-
-.menu-actions {
-  display: flex;
-  gap: 8px;
-}
-
-.menu-btn {
-  font-family: monospace;
-  font-size: 12px;
-  background: #eee;
-  border: 1px solid #aaa;
-  padding: 2px 6px;
-  cursor: pointer;
-}
-
 
 .app-container {
   display: flex;
@@ -138,20 +43,18 @@ body {
   font-weight: bold;
 }
 
-
 .dot {
   height: 12px;
   width: 12px;
   border-radius: 50%;
   display: inline-block;
-  margin-right: 4px;  /* Tightens the spacing between dots */
+  margin-right: 4px;
   vertical-align: middle;
 }
 
-
 .red { background-color: #f31d12; }
 .yellow { background-color: #ffbd2e; }
-.green { background-color: #27c93f; }
+green { background-color: #27c93f; }
 
 .tools {
   padding: 10px;
@@ -186,8 +89,6 @@ canvas {
   box-sizing: border-box;
 }
 
-
-
 .gallery-item {
   border: 1px solid #dedede;
   padding: 5px;
@@ -214,35 +115,7 @@ button {
   padding: 2px 6px;
   cursor: pointer;
 }
-#.gallery-wrapper {
-  height: 80vh; /* Or fixed height like 600px */
-  overflow-y: auto;
-}
 
-.gallery-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr); /* You can adjust this to 3 if you go back later */
-  gap: 10px;
-  padding: 10px;
-}
-
-.gallery-item {
-  width: 45%;
-  min-width: 250px;
-  max-width: 240px;
-}
-.gallery-scroll-wrapper {
-  height: 80vh;            /* Or fixed height like 600px */
-  overflow-y: auto;
-  padding: 10px;
-  box-sizing: border-box;
-}
-
-.gallery-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);  /* Adjust for number per row */
-  gap: 10px;
-}
 .admin-login-button {
   position: absolute;
   top: 10px;
