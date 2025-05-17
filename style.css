@@ -174,3 +174,10 @@ button {
   font-family: monospace;
   color: #421e1e;
 }
+
+.gallery-scroll-wrapper {
+  height: 80vh;              /* Or any fixed value like 600px */
+  overflow-y: auto;
+  padding: 10px;
+  box-sizing: border-box;
+}
