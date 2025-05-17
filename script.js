@@ -1,4 +1,3 @@
-// Drawing App Logic
 let isDrawing = false;
 let x = 0;
 let y = 0;
@@ -14,11 +13,50 @@ const sizeInput = document.getElementById('size');
 const clearButton = document.getElementById('clear');
 const undoButton = document.getElementById('undo');
 const submitButton = document.getElementById('submit');
+submitButton.addEventListener('click', () => {
+  const username = prompt("Enter a username:");
+  if (!username) return alert('Submission cancelled. No username entered.');
+
+  const dataUrl = canvas.toDataURL();
+  const container = document.createElement('div');
+  container.className = 'gallery-item window-frame';
+
+  const header = document.createElement('div');
+  header.className = 'window-header';
+  header.innerHTML = `
+    <span>
+      <span class="dot red"></span>
+      <span class="dot yellow"></span>
+      <span class="dot green"></span>
+      ${username} <span class="score">0</span>★
+    </span>
+  `;
+
+  const img = document.createElement('img');
+  img.src = dataUrl;
+
+  const votes = document.createElement('div');
+  votes.className = 'vote-controls';
+  const up = document.createElement('button');
+  const down = document.createElement('button');
+  up.textContent = '▲Up';
+  down.textContent = '▼Down';
+
+  up.addEventListener('click', () => adjustVotes(container, 1));
+  down.addEventListener('click', () => adjustVotes(container, -1));
+
+  votes.append(up, down);
+  container.append(header, img, votes);
+  container.dataset.score = 0;
+  galleryGrid.appendChild(container);
+  sortGallery();
+});
+
 const galleryGrid = document.getElementById('gallery-grid');
 const template = new Image();
 template.src = 'steen-template.jpg';
 
-// Load template and set up canvas
+// Load template
 template.onload = () => {
   canvas.width = template.width;
   canvas.height = template.height;
@@ -80,14 +118,14 @@ sizeInput.addEventListener('input', () => {
 
 clearButton.addEventListener('click', () => {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.drawImage(template, 0, 0);
+  ctx.drawImage(template, 0, 0, canvas.width, canvas.height);
   saveStep();
 });
 
 undoButton.addEventListener('click', () => {
   if (currentStep > 0) {
     currentStep--;
-    const canvasPic = new Image();
+    let canvasPic = new Image();
     canvasPic.src = drawingHistory[currentStep];
     canvasPic.onload = () => ctx.drawImage(canvasPic, 0, 0);
   }
@@ -101,59 +139,44 @@ function saveStep() {
   drawingHistory.push(canvas.toDataURL());
 }
 
-// Admin Delete Logic
-let isAdmin = false;
-document.getElementById('admin-button').addEventListener('click', () => {
-  const pwd = prompt('Enter admin password:');
-  if (pwd === 'wapowu69420') {
-    isAdmin = true;
-    alert('Admin mode activated!');
-    document.querySelectorAll('.gallery-item').forEach(addDeleteButton);
-  } else {
-    alert('Incorrect password.');
-  }
-});
+submitButton.addEventListener('click', () => {
+  const username = usernameInput.value.trim();
+  if (!username) return alert('Enter a username!');
 
-function addDeleteButton(container) {
-  if (container.querySelector('.delete-btn')) return;
-  const delBtn = document.createElement('button');
-  delBtn.textContent = '🗑️';
-  delBtn.className = 'delete-btn';
-  delBtn.style.cssText = 'margin-top:5px;background:#c00;color:white;border:none;padding:2px 5px;cursor:pointer;font-size:12px;';
-  delBtn.addEventListener('click', () => container.remove());
-  container.appendChild(delBtn);
-}
+  const dataUrl = canvas.toDataURL();
+  const container = document.createElement('div');
+  container.className = 'gallery-item window-frame';
 
-// Watermark
-const watermark = document.createElement('div');
-watermark.textContent = 'WoKT9g7Y9vERxdPg1AkeU9poRZxM713NGo4UoR2bonk';
-watermark.style.cssText = 'position:fixed;bottom:10px;left:50%;transform:translateX(-50%);font-size:12px;color:#FF7518;opacity:0.6;';
-document.body.appendChild(watermark);
-
-function createGalleryItem(url, username, score = 0) {
-  const wrapper = document.createElement('div');
-  wrapper.className = 'gallery-item';
-  wrapper.dataset.score = score;
-
-  const imgElement = document.createElement('img');
-  imgElement.src = url;
-  imgElement.alt = `Drawing by ${username}`;
-  imgElement.style.width = '200px';
-  imgElement.style.margin = '5px';
-  wrapper.appendChild(imgElement);
-
-  const controls = document.createElement('div');
-  controls.style.textAlign = 'center';
-  controls.innerHTML = `
-    <button onclick="adjustVotes(this.parentElement.parentElement, 1)">⬆️</button>
-    <span class="score">${score}</span>
-    <button onclick="adjustVotes(this.parentElement.parentElement, -1)">⬇️</button>
+  const header = document.createElement('div');
+  header.className = 'window-header';
+  header.innerHTML = `
+    <span>
+      <span class="dot red"></span>
+      <span class="dot yellow"></span>
+      <span class="dot green"></span>
+      ${username} <span class="score">0</span>★
+    </span>
   `;
-  wrapper.appendChild(controls);
 
-  if (isAdmin) addDeleteButton(wrapper);
-  return wrapper;
-}
+  const img = document.createElement('img');
+  img.src = dataUrl;
+
+  const votes = document.createElement('div');
+  votes.className = 'vote-controls';
+  const up = document.createElement('button');
+  const down = document.createElement('button');
+  up.textContent = '▲Up';
+  down.textContent = '▼Down';
+
+  up.addEventListener('click', () => adjustVotes(container, 1));
+  down.addEventListener('click', () => adjustVotes(container, -1));
+
+  votes.append(up, down);
+  container.append(header, img, votes);
+  container.dataset.score = 0;
+  galleryGrid.appendChild(container);
+  sortGallery();
+});
 
 function adjustVotes(el, delta) {
   const scoreSpan = el.querySelector('.score');
@@ -169,50 +192,49 @@ function sortGallery() {
   items.forEach(item => galleryGrid.appendChild(item));
 }
 
-// Gallery loader
-async function refreshGallery() {
-  galleryGrid.innerHTML = '';
-  try {
-    const galleryQuery = query(collection(db, 'gallery'), orderBy('timestamp', 'desc'));
-    const snapshot = await getDocs(galleryQuery);
+let isAdmin = false;
 
-    snapshot.forEach(doc => {
-      const data = doc.data();
-      const galleryItem = createGalleryItem(data.imageUrl, data.username, data.score || 0);
-      galleryGrid.appendChild(galleryItem);
-    });
-  } catch (error) {
-    console.error('Failed to load gallery:', error);
+document.getElementById('admin-button').addEventListener('click', () => {
+  const pwd = prompt('Enter admin password:');
+  if (pwd === 'letmein') { // 🔐 Change this to whatever you want
+    isAdmin = true;
+    alert('Admin mode activated!');
+
+    // Show delete buttons
+    document.querySelectorAll('.gallery-item').forEach(addDeleteButton);
+  } else {
+    alert('Incorrect password.');
   }
-}
-
-refreshGallery();
-
-submitButton.addEventListener('click', () => {
-  const username = prompt('Enter your username:');
-  if (!username) return alert('Submission cancelled. No username entered.');
-
-  canvas.toBlob(async (blob) => {
-    const localURL = URL.createObjectURL(blob);
-    const tempItem = createGalleryItem(localURL, username);
-    galleryGrid.insertBefore(tempItem, galleryGrid.firstChild);
-
-    const imageName = `${username}_${Date.now()}.png`;
-    const storageRef = ref(storage, `drawings/${imageName}`);
-
-    try {
-      await uploadBytes(storageRef, blob);
-      const url = await getDownloadURL(storageRef);
-      await addDoc(collection(db, 'gallery'), {
-        username,
-        imageUrl: url,
-        timestamp: serverTimestamp(),
-        score: 0
-      });
-      refreshGallery();
-    } catch (error) {
-      console.error('Upload Error:', error);
-      alert('Error uploading drawing. Check console for details.');
-    }
-  }, 'image/png');
 });
+
+function addDeleteButton(container) {
+  if (container.querySelector('.delete-btn')) return; // Already added
+
+  const delBtn = document.createElement('button');
+  delBtn.textContent = '🗑️';
+  delBtn.className = 'delete-btn';
+  delBtn.style.marginTop = '5px';
+  delBtn.style.background = '#c00';
+  delBtn.style.color = 'white';
+  delBtn.style.border = 'none';
+  delBtn.style.padding = '2px 5px';
+  delBtn.style.cursor = 'pointer';
+  delBtn.style.fontSize = '12px';
+
+  delBtn.addEventListener('click', () => {
+    container.remove();
+  });
+
+  container.appendChild(delBtn);
+}
+// Add bottom center text
+const watermark = document.createElement('div');
+watermark.textContent = 'WoKT9g7Y9vERxdPg1AkeU9poRZxM713NGo4UoR2bonk';
+watermark.style.position = 'fixed';
+watermark.style.bottom = '10px';
+watermark.style.left = '50%';
+watermark.style.transform = 'translateX(-50%)';
+watermark.style.fontSize = '12px';
+watermark.style.color = '#FF7518';
+watermark.style.opacity = '0.6';
+document.body.appendChild(watermark);
