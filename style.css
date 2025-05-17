@@ -129,3 +129,10 @@ button {
   cursor: pointer;
   z-index: 1000;
 }
+
+.tiny-icon {
+  height: 12px;
+  width: auto;
+  vertical-align: text-bottom;
+  margin-right: 4px;
+}
