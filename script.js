@@ -79,14 +79,14 @@ sizeInput.addEventListener('input', () => {
 
 clearButton.addEventListener('click', () => {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.drawImage(template, 0, 0, canvas.width, canvas.height);
+  ctx.drawImage(template, 0, 0);
   saveStep();
 });
 
 undoButton.addEventListener('click', () => {
   if (currentStep > 0) {
     currentStep--;
-    let canvasPic = new Image();
+    const canvasPic = new Image();
     canvasPic.src = drawingHistory[currentStep];
     canvasPic.onload = () => ctx.drawImage(canvasPic, 0, 0);
   }
@@ -118,11 +118,9 @@ let isAdmin = false;
 
 document.getElementById('admin-button').addEventListener('click', () => {
   const pwd = prompt('Enter admin password:');
-  if (pwd === 'wapowu69420') { // 🔐 Change this to whatever you want
+  if (pwd === 'wapowu69420') {
     isAdmin = true;
     alert('Admin mode activated!');
-
-    // Show delete buttons
     document.querySelectorAll('.gallery-item').forEach(addDeleteButton);
   } else {
     alert('Incorrect password.');
@@ -130,18 +128,20 @@ document.getElementById('admin-button').addEventListener('click', () => {
 });
 
 function addDeleteButton(container) {
-  if (container.querySelector('.delete-btn')) return; // Already added
+  if (container.querySelector('.delete-btn')) return;
 
   const delBtn = document.createElement('button');
   delBtn.textContent = '🗑️';
   delBtn.className = 'delete-btn';
-  delBtn.style.marginTop = '5px';
-  delBtn.style.background = '#c00';
-  delBtn.style.color = 'white';
-  delBtn.style.border = 'none';
-  delBtn.style.padding = '2px 5px';
-  delBtn.style.cursor = 'pointer';
-  delBtn.style.fontSize = '12px';
+  Object.assign(delBtn.style, {
+    marginTop: '5px',
+    background: '#c00',
+    color: 'white',
+    border: 'none',
+    padding: '2px 5px',
+    cursor: 'pointer',
+    fontSize: '12px'
+  });
 
   delBtn.addEventListener('click', () => {
     container.remove();
@@ -149,72 +149,67 @@ function addDeleteButton(container) {
 
   container.appendChild(delBtn);
 }
-// Add bottom center text
+
+// Watermark
 const watermark = document.createElement('div');
 watermark.textContent = 'WoKT9g7Y9vERxdPg1AkeU9poRZxM713NGo4UoR2bonk';
-watermark.style.position = 'fixed';
-watermark.style.bottom = '10px';
-watermark.style.left = '50%';
-watermark.style.transform = 'translateX(-50%)';
-watermark.style.fontSize = '12px';
-watermark.style.color = '#FF7518';
-watermark.style.opacity = '0.6';
+Object.assign(watermark.style, {
+  position: 'fixed',
+  bottom: '10px',
+  left: '50%',
+  transform: 'translateX(-50%)',
+  fontSize: '12px',
+  color: '#FF7518',
+  opacity: '0.6'
+});
 document.body.appendChild(watermark);
 
-// Gallery Refresh function:
+// Firestore Gallery Refresh
 async function refreshGallery() {
-  const galleryGrid = document.getElementById('gallery-grid');
   galleryGrid.innerHTML = '';
+  try {
+    const galleryQuery = query(collection(db, 'gallery'), orderBy('timestamp', 'desc'));
+    const snapshot = await getDocs(galleryQuery);
 
-  const galleryQuery = query(collection(db, 'gallery'), orderBy('timestamp', 'desc'));
-  const snapshot = await getDocs(galleryQuery);
+    snapshot.forEach(doc => {
+      const data = doc.data();
+      const imgElement = document.createElement('img');
+      imgElement.src = data.imageUrl;
+      imgElement.alt = `Drawing by ${data.username}`;
+      imgElement.style.width = '200px';
+      imgElement.style.margin = '5px';
 
-  snapshot.forEach(doc => {
-    const data = doc.data();
-    const imgElement = document.createElement('img');
-    imgElement.src = data.imageUrl;
-    imgElement.alt = `Drawing by ${data.username}`;
-    imgElement.style.width = '200px';
-    imgElement.style.margin = '5px';
-
-    galleryGrid.appendChild(imgElement);
-  });
+      galleryGrid.appendChild(imgElement);
+    });
+  } catch (err) {
+    console.error('Gallery fetch failed:', err);
+  }
 }
 
-// Load gallery initially
 refreshGallery();
 
 submitButton.addEventListener('click', () => {
   const username = prompt('Enter your username:');
   if (!username) return alert('Submission cancelled. No username entered.');
-  
-  console.log('🟢 Submitting drawing for', username);
 
   canvas.toBlob(async (blob) => {
     const imageName = `${username}_${Date.now()}.png`;
     const storageRef = ref(storage, `drawings/${imageName}`);
-    console.log('📤 Uploading to:', storageRef);
 
     try {
       await uploadBytes(storageRef, blob);
-      console.log('✅ Upload complete!');
-
       const url = await getDownloadURL(storageRef);
-      console.log('🔗 Download URL:', url);
-
       await addDoc(collection(db, 'gallery'), {
-        username: username,
+        username,
         imageUrl: url,
         timestamp: serverTimestamp(),
         score: 0
       });
-      console.log('🗂️ Firestore doc added!');
-
       alert('Drawing uploaded successfully!');
-      refreshGallery(); // Refresh immediately
+      refreshGallery();
     } catch (error) {
-      console.error('❌ Upload Error:', error);
-      alert('Error uploading drawing. Check console for details.');
+      console.error('Upload failed:', error);
+      alert('Error uploading drawing. Check console.');
     }
   }, 'image/png');
 });
