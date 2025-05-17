@@ -130,6 +130,45 @@ watermark.textContent = 'WoKT9g7Y9vERxdPg1AkeU9poRZxM713NGo4UoR2bonk';
 watermark.style.cssText = 'position:fixed;bottom:10px;left:50%;transform:translateX(-50%);font-size:12px;color:#FF7518;opacity:0.6;';
 document.body.appendChild(watermark);
 
+function createGalleryItem(url, username, score = 0) {
+  const wrapper = document.createElement('div');
+  wrapper.className = 'gallery-item';
+  wrapper.dataset.score = score;
+
+  const imgElement = document.createElement('img');
+  imgElement.src = url;
+  imgElement.alt = `Drawing by ${username}`;
+  imgElement.style.width = '200px';
+  imgElement.style.margin = '5px';
+  wrapper.appendChild(imgElement);
+
+  const controls = document.createElement('div');
+  controls.style.textAlign = 'center';
+  controls.innerHTML = `
+    <button onclick="adjustVotes(this.parentElement.parentElement, 1)">⬆️</button>
+    <span class="score">${score}</span>
+    <button onclick="adjustVotes(this.parentElement.parentElement, -1)">⬇️</button>
+  `;
+  wrapper.appendChild(controls);
+
+  if (isAdmin) addDeleteButton(wrapper);
+  return wrapper;
+}
+
+function adjustVotes(el, delta) {
+  const scoreSpan = el.querySelector('.score');
+  let score = parseInt(scoreSpan.textContent) + delta;
+  scoreSpan.textContent = score;
+  el.dataset.score = score;
+  sortGallery();
+}
+
+function sortGallery() {
+  const items = Array.from(galleryGrid.children);
+  items.sort((a, b) => parseInt(b.dataset.score) - parseInt(a.dataset.score));
+  items.forEach(item => galleryGrid.appendChild(item));
+}
+
 // Gallery loader
 async function refreshGallery() {
   galleryGrid.innerHTML = '';
@@ -139,12 +178,8 @@ async function refreshGallery() {
 
     snapshot.forEach(doc => {
       const data = doc.data();
-      const imgElement = document.createElement('img');
-      imgElement.src = data.imageUrl;
-      imgElement.alt = `Drawing by ${data.username}`;
-      imgElement.style.width = '200px';
-      imgElement.style.margin = '5px';
-      galleryGrid.appendChild(imgElement);
+      const galleryItem = createGalleryItem(data.imageUrl, data.username, data.score || 0);
+      galleryGrid.appendChild(galleryItem);
     });
   } catch (error) {
     console.error('Failed to load gallery:', error);
@@ -158,13 +193,9 @@ submitButton.addEventListener('click', () => {
   if (!username) return alert('Submission cancelled. No username entered.');
 
   canvas.toBlob(async (blob) => {
-    // Optimistically display locally before upload
-    const localImg = document.createElement('img');
-    localImg.src = URL.createObjectURL(blob);
-    localImg.alt = `Pending upload by ${username}`;
-    localImg.style.width = '200px';
-    localImg.style.margin = '5px';
-    galleryGrid.insertBefore(localImg, galleryGrid.firstChild);
+    const localURL = URL.createObjectURL(blob);
+    const tempItem = createGalleryItem(localURL, username);
+    galleryGrid.insertBefore(tempItem, galleryGrid.firstChild);
 
     const imageName = `${username}_${Date.now()}.png`;
     const storageRef = ref(storage, `drawings/${imageName}`);
