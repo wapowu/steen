@@ -13,45 +13,6 @@ const sizeInput = document.getElementById('size');
 const clearButton = document.getElementById('clear');
 const undoButton = document.getElementById('undo');
 const submitButton = document.getElementById('submit');
-submitButton.addEventListener('click', () => {
-  const username = prompt("Enter a username:");
-  if (!username) return alert('Submission cancelled. No username entered.');
-
-  const dataUrl = canvas.toDataURL();
-  const container = document.createElement('div');
-  container.className = 'gallery-item window-frame';
-
-  const header = document.createElement('div');
-  header.className = 'window-header';
-  header.innerHTML = `
-    <span>
-      <span class="dot red"></span>
-      <span class="dot yellow"></span>
-      <span class="dot green"></span>
-      ${username} <span class="score">0</span>★
-    </span>
-  `;
-
-  const img = document.createElement('img');
-  img.src = dataUrl;
-
-  const votes = document.createElement('div');
-  votes.className = 'vote-controls';
-  const up = document.createElement('button');
-  const down = document.createElement('button');
-  up.textContent = '▲Up';
-  down.textContent = '▼Down';
-
-  up.addEventListener('click', () => adjustVotes(container, 1));
-  down.addEventListener('click', () => adjustVotes(container, -1));
-
-  votes.append(up, down);
-  container.append(header, img, votes);
-  container.dataset.score = 0;
-  galleryGrid.appendChild(container);
-  sortGallery();
-});
-
 const galleryGrid = document.getElementById('gallery-grid');
 const template = new Image();
 template.src = 'steen-template.jpg';
@@ -139,45 +100,6 @@ function saveStep() {
   drawingHistory.push(canvas.toDataURL());
 }
 
-submitButton.addEventListener('click', () => {
-  const username = usernameInput.value.trim();
-  if (!username) return alert('Enter a username!');
-
-  const dataUrl = canvas.toDataURL();
-  const container = document.createElement('div');
-  container.className = 'gallery-item window-frame';
-
-  const header = document.createElement('div');
-  header.className = 'window-header';
-  header.innerHTML = `
-    <span>
-      <span class="dot red"></span>
-      <span class="dot yellow"></span>
-      <span class="dot green"></span>
-      ${username} <span class="score">0</span>★
-    </span>
-  `;
-
-  const img = document.createElement('img');
-  img.src = dataUrl;
-
-  const votes = document.createElement('div');
-  votes.className = 'vote-controls';
-  const up = document.createElement('button');
-  const down = document.createElement('button');
-  up.textContent = '▲Up';
-  down.textContent = '▼Down';
-
-  up.addEventListener('click', () => adjustVotes(container, 1));
-  down.addEventListener('click', () => adjustVotes(container, -1));
-
-  votes.append(up, down);
-  container.append(header, img, votes);
-  container.dataset.score = 0;
-  galleryGrid.appendChild(container);
-  sortGallery();
-});
-
 function adjustVotes(el, delta) {
   const scoreSpan = el.querySelector('.score');
   let score = parseInt(scoreSpan.textContent) + delta;
@@ -238,3 +160,54 @@ watermark.style.fontSize = '12px';
 watermark.style.color = '#FF7518';
 watermark.style.opacity = '0.6';
 document.body.appendChild(watermark);
+
+// Gallery Refresh function:
+async function refreshGallery() {
+  const galleryGrid = document.getElementById('gallery-grid');
+  galleryGrid.innerHTML = '';
+
+  const galleryQuery = query(collection(db, 'gallery'), orderBy('timestamp', 'desc'));
+  const snapshot = await getDocs(galleryQuery);
+
+  snapshot.forEach(doc => {
+    const data = doc.data();
+    const imgElement = document.createElement('img');
+    imgElement.src = data.imageUrl;
+    imgElement.alt = `Drawing by ${data.username}`;
+    imgElement.style.width = '200px';
+    imgElement.style.margin = '5px';
+
+    galleryGrid.appendChild(imgElement);
+  });
+}
+
+// Load gallery initially
+refreshGallery();
+
+submitButton.addEventListener('click', () => {
+  const username = prompt('Enter your username:');
+  if (!username) return alert('Submission cancelled. No username entered.');
+
+  canvas.toBlob(async (blob) => {
+    const imageName = `${username}_${Date.now()}.png`;
+    const storageRef = ref(storage, `drawings/${imageName}`);
+
+    try {
+      await uploadBytes(storageRef, blob);
+      const url = await getDownloadURL(storageRef);
+
+      await addDoc(collection(db, 'gallery'), {
+        username: username,
+        imageUrl: url,
+        timestamp: serverTimestamp(),
+        score: 0
+      });
+
+      alert('Drawing uploaded successfully!');
+      refreshGallery(); // Refresh immediately
+    } catch (error) {
+      console.error('Error uploading:', error);
+      alert('Error uploading drawing. Check console for details.');
+    }
+  }, 'image/png');
+});
